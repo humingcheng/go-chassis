@@ -39,6 +39,7 @@ import (
 	// highway package register the highway server plugin
 	_ "github.com/ServiceComb/go-chassis/third_party/forked/go-micro/server/highway"
 	// tcp package handles transport related things
+	"github.com/ServiceComb/go-chassis/core/routerManager"
 	_ "github.com/ServiceComb/go-chassis/third_party/forked/go-micro/transport/tcp"
 )
 
@@ -142,6 +143,7 @@ func (c *chassis) initialize() error {
 
 	eventlistener.Init()
 	c.Initialized = true
+	routerManager.Init()
 	return nil
 }
 

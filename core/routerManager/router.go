@@ -76,6 +76,7 @@ func Init() {
 	RouterConfMgr = configmanager.NewConfigurationManager(d)
 	fileSource := &RouterFileSource{}
 	RouterConfMgr.AddSource(fileSource, fileSource.GetPriority())
+	lager.Logger.Info("Router config manager init success")
 }
 
 //// Refresh refresh the whole router rule config
