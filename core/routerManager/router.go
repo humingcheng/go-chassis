@@ -1,16 +1,17 @@
 package routerManager
 
 import (
-	"fmt"
-
 	"errors"
 	"github.com/ServiceComb/go-archaius/core"
 	"github.com/ServiceComb/go-archaius/core/config-manager"
 	"github.com/ServiceComb/go-archaius/core/event-system"
 	"github.com/ServiceComb/go-chassis/core/config"
 	"github.com/ServiceComb/go-chassis/core/lager"
-	"github.com/ServiceComb/go-chassis/core/route"
 	"sync"
+)
+
+const (
+	RouterFileSourceName = "RouterFileSource"
 )
 
 var RouterConfMgr core.ConfigMgr
@@ -40,9 +41,8 @@ func (r *RouterFileSource) Init() {
 }
 
 func (r *RouterFileSource) GetSourceName() string {
-	return "RouterFileSource"
+	return RouterFileSourceName
 }
-
 func (r *RouterFileSource) GetConfigurations() (map[string]interface{}, error) {
 	r.once.Do(r.Init)
 	return r.d, nil
@@ -51,6 +51,7 @@ func (r *RouterFileSource) GetConfigurationsByDI(dimensionInfo string) (map[stri
 	return nil, nil
 }
 func (r *RouterFileSource) GetConfigurationByKey(k string) (interface{}, error) {
+	r.once.Do(r.Init)
 	v, ok := r.d[k]
 	if !ok {
 		return nil, errors.New("key " + k + " not exist")
@@ -73,24 +74,26 @@ func Init() {
 	d := eventsystem.NewDispatcher()
 	d.RegisterListener(&RouterEventListerner{})
 	RouterConfMgr = configmanager.NewConfigurationManager(d)
+	fileSource := &RouterFileSource{}
+	RouterConfMgr.AddSource(fileSource, fileSource.GetPriority())
 }
 
-// Refresh refresh the whole router rule config
-func Refresh() error {
-	configs := RouterConfMgr.GetConfigurations()
-	dests := make(map[string][]*config.RouteRule)
-	for k, v := range configs {
-		rules, ok := v.([]*config.RouteRule)
-		if !ok {
-			err := fmt.Errorf("route rule assertion fail, key: %s", k)
-			lager.Logger.Error(err.Error(), nil)
-			return err
-		}
-		dests[k] = rules
-	}
-	router.SetRouteRule(dests)
-	return nil
-}
+//// Refresh refresh the whole router rule config
+//func Refresh() error {
+//	configs := RouterConfMgr.GetConfigurations()
+//	dests := make(map[string][]*config.RouteRule)
+//	for k, v := range configs {
+//		rules, ok := v.([]*config.RouteRule)
+//		if !ok {
+//			err := fmt.Errorf("route rule assertion fail, key: %s", k)
+//			lager.Logger.Error(err.Error(), nil)
+//			return err
+//		}
+//		dests[k] = rules
+//	}
+//	router.SetRouteRule(dests)
+//	return nil
+//}
 
 // add source
 
