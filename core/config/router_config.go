@@ -51,6 +51,31 @@ func InitRouter() error {
 	return nil
 }
 
+func GetRouterConfigFromDarkLaunch() (*RouterConfig, error) {
+	routeRules := &RouterConfig{
+		Destinations: map[string][]*RouteRule{},
+	}
+
+	configMap := archaius.GetConfigs()
+	//filter out key:value pairs which are not route rules
+	for k := range configMap {
+		if !strings.HasPrefix(k, DarkLaunchPrefix) {
+			delete(configMap, k)
+		}
+	}
+
+	//put route rules in configMap into routeRules
+	rule := &DarkLaunchRule{}
+	for k, v := range configMap {
+		if err := json.Unmarshal([]byte(v.(string)), rule); err != nil {
+			return routeRules, err
+		}
+		key := strings.Replace(k, DarkLaunchPrefix, "", 1)
+		routeRules.Destinations[key] = TranslateRules(rule)
+	}
+	return routeRules, nil
+}
+
 // GetRouteRules get route rules
 func GetRouteRules() (*RouterConfig, error) {
 	f := fileutil.GetRouter()

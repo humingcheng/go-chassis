@@ -11,10 +11,11 @@ import (
 )
 
 const (
-	RouterFileSourceName = "RouterFileSource"
+	RouterFileSourceName       = "RouterFileSource"
+	RouterDarkLaunchSourceName = "RouterDarkLaunchSource"
 )
 
-var RouterConfMgr core.ConfigMgr
+var RouterRuleMgr core.ConfigMgr
 
 type RouterEventListerner struct{}
 
@@ -70,13 +71,70 @@ func (r *RouterFileSource) DynamicConfigHandler(core.DynamicConfigCallback) erro
 func (r *RouterFileSource) GetPriority() int { return 10 }
 func (r *RouterFileSource) Cleanup() error   { return nil }
 
+type RouterDarkLaunchSource struct {
+	once sync.Once
+	d    map[string]interface{}
+}
+
+func (r *RouterDarkLaunchSource) Init() {
+	routerConfigs := config.GetRouterConfig()
+	d := make(map[string]interface{}, 0)
+	if routerConfigs == nil {
+		r.d = d
+		lager.Logger.Error("Can not get any router config", nil)
+		return
+	}
+	for k, v := range routerConfigs.Destinations {
+		d[k] = v
+	}
+	r.d = d
+}
+
+func (r *RouterDarkLaunchSource) GetSourceName() string {
+	return RouterDarkLaunchSourceName
+}
+func (r *RouterDarkLaunchSource) GetConfigurations() (map[string]interface{}, error) {
+	routerConfigs, err := config.GetRouterConfigFromDarkLaunch()
+	if err != nil {
+		lager.Logger.Error("Get router config from dark launch failed", err)
+		return nil, err
+	}
+	d := make(map[string]interface{}, 0)
+	for k, v := range routerConfigs.Destinations {
+		d[k] = v
+	}
+	return d, nil
+}
+func (r *RouterDarkLaunchSource) GetConfigurationsByDI(dimensionInfo string) (map[string]interface{}, error) {
+	return nil, nil
+}
+func (r *RouterDarkLaunchSource) GetConfigurationByKey(k string) (interface{}, error) {
+	r.once.Do(r.Init)
+	v, ok := r.d[k]
+	if !ok {
+		return nil, errors.New("key " + k + " not exist")
+	}
+	return v, nil
+}
+func (r *RouterDarkLaunchSource) GetConfigurationByKeyAndDimensionInfo(key, dimensionInfo string) (interface{}, error) {
+	return nil, nil
+}
+func (r *RouterDarkLaunchSource) AddDimensionInfo(dimensionInfo string) (map[string]string, error) {
+	return nil, nil
+}
+func (r *RouterDarkLaunchSource) DynamicConfigHandler(core.DynamicConfigCallback) error {
+	return nil
+}
+func (r *RouterDarkLaunchSource) GetPriority() int { return 9 }
+func (r *RouterDarkLaunchSource) Cleanup() error   { return nil }
+
 func Init() {
 	d := eventsystem.NewDispatcher()
 	d.RegisterListener(&RouterEventListerner{})
-	RouterConfMgr = configmanager.NewConfigurationManager(d)
+	RouterRuleMgr = configmanager.NewConfigurationManager(d)
 	fileSource := &RouterFileSource{}
-	RouterConfMgr.AddSource(fileSource, fileSource.GetPriority())
-	lager.Logger.Info("Router config manager init success")
+	RouterRuleMgr.AddSource(fileSource, fileSource.GetPriority())
+	lager.Logger.Info("Route rule manager init success")
 }
 
 //// Refresh refresh the whole router rule config
