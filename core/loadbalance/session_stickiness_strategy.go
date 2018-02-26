@@ -3,28 +3,27 @@ package loadbalance
 import (
 	"github.com/ServiceComb/go-chassis/core/registry"
 	"github.com/ServiceComb/go-chassis/third_party/forked/go-micro/selector"
-	cache "github.com/patrickmn/go-cache"
+
+	"github.com/ServiceComb/go-chassis/session"
 	"sync"
-	"time"
 )
 
 var (
-	// SessionCache session cache variable
-	SessionCache *cache.Cache
+
 	// successiveFailureCount success and failure count
 	successiveFailureCount      map[string]int
 	successiveFailureCountMutex sync.RWMutex
 )
 
 func init() {
-	SessionCache = initCache()
 	successiveFailureCount = make(map[string]int)
 }
 
-//ResetSuccessiveFailureCount reset failure count
-func ResetSuccessiveFailureCount(ep string) {
+//DeleteSuccessiveFailureCount deleting cookie from failure count map
+func DeleteSuccessiveFailureCount(cookieValue string) {
 	successiveFailureCountMutex.Lock()
-	successiveFailureCount[ep] = 0
+	//	successiveFailureCount[ep] = 0
+	delete(successiveFailureCount, cookieValue)
 	successiveFailureCountMutex.Unlock()
 }
 
@@ -36,30 +35,24 @@ func ResetSuccessiveFailureMap() {
 }
 
 //IncreaseSuccessiveFailureCount increase failure count
-func IncreaseSuccessiveFailureCount(ep string) {
+func IncreaseSuccessiveFailureCount(cookieValue string) {
 	successiveFailureCountMutex.Lock()
-	c, ok := successiveFailureCount[ep]
+	c, ok := successiveFailureCount[cookieValue]
 	if ok {
-		successiveFailureCount[ep] = c + 1
+		successiveFailureCount[cookieValue] = c + 1
 		successiveFailureCountMutex.Unlock()
 		return
 	}
-	successiveFailureCount[ep] = 1
+	successiveFailureCount[cookieValue] = 1
 	successiveFailureCountMutex.Unlock()
 	return
 }
 
 //GetSuccessiveFailureCount get failure count
-func GetSuccessiveFailureCount(ep string) int {
+func GetSuccessiveFailureCount(cookieValue string) int {
 	successiveFailureCountMutex.RLock()
 	defer successiveFailureCountMutex.RUnlock()
-	return successiveFailureCount[ep]
-}
-func initCache() *cache.Cache {
-	var value *cache.Cache
-
-	value = cache.New(3e+10, time.Second*30)
-	return value
+	return successiveFailureCount[cookieValue]
 }
 
 // SessionStickiness is a SessionStickiness strategy algorithm for node selection
@@ -81,7 +74,7 @@ func SessionStickiness(instances []*registry.MicroServiceInstance, metadata inte
 		return strategyRoundRobinClosur
 	}
 
-	instanceAddr, ok := SessionCache.Get(metadata.(string))
+	instanceAddr, ok := session.Get(metadata.(string))
 	if ok {
 		return func() (*registry.MicroServiceInstance, error) {
 			if len(instances) == 0 {
