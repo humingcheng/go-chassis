@@ -77,10 +77,7 @@ func (r *RouterFileSource) DynamicConfigHandler(core.DynamicConfigCallback) erro
 func (r *RouterFileSource) GetPriority() int { return 10 }
 func (r *RouterFileSource) Cleanup() error   { return nil }
 
-type RouterDarkLaunchSource struct {
-	once sync.Once
-	d    map[string]interface{}
-}
+type RouterDarkLaunchSource struct{}
 
 func (r *RouterDarkLaunchSource) GetSourceName() string {
 	return RouterDarkLaunchSourceName
