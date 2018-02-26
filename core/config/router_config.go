@@ -67,6 +67,7 @@ func GetRouterConfigFromDarkLaunch() (*RouterConfig, error) {
 	//put route rules in configMap into routeRules
 	rule := &DarkLaunchRule{}
 	for k, v := range configMap {
+		// todo bug fix
 		if err := json.Unmarshal([]byte(v.(string)), rule); err != nil {
 			return routeRules, err
 		}
@@ -108,6 +109,7 @@ func GetRouteRules() (*RouterConfig, error) {
 	rule := &DarkLaunchRule{}
 	for k, v := range configMap {
 		if err := json.Unmarshal([]byte(v.(string)), rule); err != nil {
+			// todo bug fix
 			return routeRules, err
 		}
 		key := strings.Replace(k, DarkLaunchPrefix, "", 1)

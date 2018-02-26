@@ -1,10 +1,12 @@
 package routerManager
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/ServiceComb/go-archaius/core"
 	"github.com/ServiceComb/go-archaius/core/config-manager"
 	"github.com/ServiceComb/go-archaius/core/event-system"
+	"github.com/ServiceComb/go-chassis/core/archaius"
 	"github.com/ServiceComb/go-chassis/core/config"
 	"github.com/ServiceComb/go-chassis/core/lager"
 	"sync"
@@ -13,6 +15,10 @@ import (
 const (
 	RouterFileSourceName       = "RouterFileSource"
 	RouterDarkLaunchSourceName = "RouterDarkLaunchSource"
+)
+
+const (
+	DarkLaunchPrefix = "cse.darklaunch.policy."
 )
 
 var RouterRuleMgr core.ConfigMgr
@@ -76,20 +82,6 @@ type RouterDarkLaunchSource struct {
 	d    map[string]interface{}
 }
 
-func (r *RouterDarkLaunchSource) Init() {
-	routerConfigs := config.GetRouterConfig()
-	d := make(map[string]interface{}, 0)
-	if routerConfigs == nil {
-		r.d = d
-		lager.Logger.Error("Can not get any router config", nil)
-		return
-	}
-	for k, v := range routerConfigs.Destinations {
-		d[k] = v
-	}
-	r.d = d
-}
-
 func (r *RouterDarkLaunchSource) GetSourceName() string {
 	return RouterDarkLaunchSourceName
 }
@@ -109,12 +101,13 @@ func (r *RouterDarkLaunchSource) GetConfigurationsByDI(dimensionInfo string) (ma
 	return nil, nil
 }
 func (r *RouterDarkLaunchSource) GetConfigurationByKey(k string) (interface{}, error) {
-	r.once.Do(r.Init)
-	v, ok := r.d[k]
-	if !ok {
-		return nil, errors.New("key " + k + " not exist")
+	s := archaius.GetString(DarkLaunchPrefix+k, "")
+	rule := &config.DarkLaunchRule{}
+	if err := json.Unmarshal([]byte(s), rule); err != nil {
+		return nil, err
 	}
-	return v, nil
+	routeRules := config.TranslateRules(rule)
+	return routeRules, nil
 }
 func (r *RouterDarkLaunchSource) GetConfigurationByKeyAndDimensionInfo(key, dimensionInfo string) (interface{}, error) {
 	return nil, nil
@@ -134,6 +127,8 @@ func Init() {
 	RouterRuleMgr = configmanager.NewConfigurationManager(d)
 	fileSource := &RouterFileSource{}
 	RouterRuleMgr.AddSource(fileSource, fileSource.GetPriority())
+	darkLaunchSource := &RouterDarkLaunchSource{}
+	RouterRuleMgr.AddSource(darkLaunchSource, darkLaunchSource.GetPriority())
 	lager.Logger.Info("Route rule manager init success")
 }
 
