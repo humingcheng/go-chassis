@@ -77,7 +77,9 @@ func (r *RouterFileSource) DynamicConfigHandler(core.DynamicConfigCallback) erro
 func (r *RouterFileSource) GetPriority() int { return 10 }
 func (r *RouterFileSource) Cleanup() error   { return nil }
 
-type RouterDarkLaunchSource struct{}
+type RouterDarkLaunchSource struct {
+	d core.DynamicConfigCallback
+}
 
 func (r *RouterDarkLaunchSource) GetSourceName() string {
 	return RouterDarkLaunchSourceName
@@ -112,11 +114,19 @@ func (r *RouterDarkLaunchSource) GetConfigurationByKeyAndDimensionInfo(key, dime
 func (r *RouterDarkLaunchSource) AddDimensionInfo(dimensionInfo string) (map[string]string, error) {
 	return nil, nil
 }
-func (r *RouterDarkLaunchSource) DynamicConfigHandler(core.DynamicConfigCallback) error {
+func (r *RouterDarkLaunchSource) DynamicConfigHandler(d core.DynamicConfigCallback) error {
+	r.d = d
 	return nil
 }
 func (r *RouterDarkLaunchSource) GetPriority() int { return 9 }
 func (r *RouterDarkLaunchSource) Cleanup() error   { return nil }
+func (r *RouterDarkLaunchSource) Callback(e *core.Event) error {
+	if r.d == nil {
+		return errors.New("dynamic config handler is nil")
+	}
+	r.d.OnEvent(e)
+	return nil
+}
 
 func Init() {
 	d := eventsystem.NewDispatcher()
