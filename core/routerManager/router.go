@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	RouterFileSourceName       = "RouterFileSource"
-	RouterDarkLaunchSourceName = "RouterDarkLaunchSource"
+	RouterFileSourceName             = "RouterFileSource"
+	RouterDarkLaunchGovernSourceName = "RouterDarkLaunchGovernSource"
 )
 
 const (
@@ -77,14 +77,14 @@ func (r *RouterFileSource) DynamicConfigHandler(core.DynamicConfigCallback) erro
 func (r *RouterFileSource) GetPriority() int { return 10 }
 func (r *RouterFileSource) Cleanup() error   { return nil }
 
-type RouterDarkLaunchSource struct {
+type RouterDarkLaunchGovernSource struct {
 	d core.DynamicConfigCallback
 }
 
-func (r *RouterDarkLaunchSource) GetSourceName() string {
-	return RouterDarkLaunchSourceName
+func (r *RouterDarkLaunchGovernSource) GetSourceName() string {
+	return RouterDarkLaunchGovernSourceName
 }
-func (r *RouterDarkLaunchSource) GetConfigurations() (map[string]interface{}, error) {
+func (r *RouterDarkLaunchGovernSource) GetConfigurations() (map[string]interface{}, error) {
 	routerConfigs, err := config.GetRouterConfigFromDarkLaunch()
 	if err != nil {
 		lager.Logger.Error("Get router config from dark launch failed", err)
@@ -96,10 +96,10 @@ func (r *RouterDarkLaunchSource) GetConfigurations() (map[string]interface{}, er
 	}
 	return d, nil
 }
-func (r *RouterDarkLaunchSource) GetConfigurationsByDI(dimensionInfo string) (map[string]interface{}, error) {
+func (r *RouterDarkLaunchGovernSource) GetConfigurationsByDI(dimensionInfo string) (map[string]interface{}, error) {
 	return nil, nil
 }
-func (r *RouterDarkLaunchSource) GetConfigurationByKey(k string) (interface{}, error) {
+func (r *RouterDarkLaunchGovernSource) GetConfigurationByKey(k string) (interface{}, error) {
 	s := archaius.GetString(DarkLaunchPrefix+k, "")
 	rule := &config.DarkLaunchRule{}
 	if err := json.Unmarshal([]byte(s), rule); err != nil {
@@ -108,19 +108,19 @@ func (r *RouterDarkLaunchSource) GetConfigurationByKey(k string) (interface{}, e
 	routeRules := config.TranslateRules(rule)
 	return routeRules, nil
 }
-func (r *RouterDarkLaunchSource) GetConfigurationByKeyAndDimensionInfo(key, dimensionInfo string) (interface{}, error) {
+func (r *RouterDarkLaunchGovernSource) GetConfigurationByKeyAndDimensionInfo(key, dimensionInfo string) (interface{}, error) {
 	return nil, nil
 }
-func (r *RouterDarkLaunchSource) AddDimensionInfo(dimensionInfo string) (map[string]string, error) {
+func (r *RouterDarkLaunchGovernSource) AddDimensionInfo(dimensionInfo string) (map[string]string, error) {
 	return nil, nil
 }
-func (r *RouterDarkLaunchSource) DynamicConfigHandler(d core.DynamicConfigCallback) error {
+func (r *RouterDarkLaunchGovernSource) DynamicConfigHandler(d core.DynamicConfigCallback) error {
 	r.d = d
 	return nil
 }
-func (r *RouterDarkLaunchSource) GetPriority() int { return 9 }
-func (r *RouterDarkLaunchSource) Cleanup() error   { return nil }
-func (r *RouterDarkLaunchSource) Callback(e *core.Event) error {
+func (r *RouterDarkLaunchGovernSource) GetPriority() int { return 9 }
+func (r *RouterDarkLaunchGovernSource) Cleanup() error   { return nil }
+func (r *RouterDarkLaunchGovernSource) Callback(e *core.Event) error {
 	if r.d == nil {
 		return errors.New("dynamic config handler is nil")
 	}
@@ -134,7 +134,7 @@ func Init() {
 	RouterRuleMgr = configmanager.NewConfigurationManager(d)
 	fileSource := &RouterFileSource{}
 	RouterRuleMgr.AddSource(fileSource, fileSource.GetPriority())
-	darkLaunchSource := &RouterDarkLaunchSource{}
+	darkLaunchSource := &RouterDarkLaunchGovernSource{}
 	RouterRuleMgr.AddSource(darkLaunchSource, darkLaunchSource.GetPriority())
 	lager.Logger.Info("Route rule manager init success")
 }
