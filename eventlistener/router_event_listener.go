@@ -7,6 +7,7 @@ import (
 	"github.com/ServiceComb/go-chassis/core/config"
 	"github.com/ServiceComb/go-chassis/core/lager"
 	"github.com/ServiceComb/go-chassis/core/route"
+	"github.com/ServiceComb/go-chassis/core/routerManager"
 	"strings"
 )
 
@@ -22,6 +23,9 @@ type DarkLaunchEventListener struct{}
 
 //Event is method used for dark launch event listening
 func (e *DarkLaunchEventListener) Event(event *core.Event) {
+	if err := routerManager.DarkLaunchGovernSource.Callback(event); err != nil {
+		lager.Logger.Error("Darklaunch to router failed", err)
+	}
 	rules := router.GetRouteRule()
 	if rules == nil {
 		rules = map[string][]*config.RouteRule{}

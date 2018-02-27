@@ -22,6 +22,7 @@ const (
 )
 
 var RouterRuleMgr core.ConfigMgr
+var DarkLaunchGovernSource *RouterDarkLaunchGovernSource
 
 type RouterEventListerner struct{}
 
@@ -124,6 +125,7 @@ func (r *RouterDarkLaunchGovernSource) Callback(e *core.Event) error {
 	if r.d == nil {
 		return errors.New("dynamic config handler is nil")
 	}
+	lager.Logger.Infof("Router changed by dark launch governance, key: %s", e.Key)
 	r.d.OnEvent(e)
 	return nil
 }
@@ -134,8 +136,8 @@ func Init() {
 	RouterRuleMgr = configmanager.NewConfigurationManager(d)
 	fileSource := &RouterFileSource{}
 	RouterRuleMgr.AddSource(fileSource, fileSource.GetPriority())
-	darkLaunchSource := &RouterDarkLaunchGovernSource{}
-	RouterRuleMgr.AddSource(darkLaunchSource, darkLaunchSource.GetPriority())
+	DarkLaunchGovernSource = &RouterDarkLaunchGovernSource{}
+	RouterRuleMgr.AddSource(DarkLaunchGovernSource, DarkLaunchGovernSource.GetPriority())
 	lager.Logger.Info("Route rule manager init success")
 }
 
