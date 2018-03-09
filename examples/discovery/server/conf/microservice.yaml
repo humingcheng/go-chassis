@@ -3,7 +3,6 @@
 service_description:
   name: Server
   #version: 0.1 optional
-instance_description:
-  #environment: testing
+  #environment: production
 properties:
   allowCrossApp: true
