@@ -44,7 +44,7 @@ func (m *RegistryMock) AddDependencies(request *registry.MicroServiceDependency)
 }
 
 // GetMicroServiceID get micro-service id
-func (m *RegistryMock) GetMicroServiceID(appID, microServiceName, version string) (string, error) {
+func (m *RegistryMock) GetMicroServiceID(appID, microServiceName, version, env string) (string, error) {
 	args := m.Called(appID, microServiceName, version)
 	return args.String(0), args.Error(1)
 }

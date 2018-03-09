@@ -38,7 +38,6 @@ func TestCacheManager_AutoSync(t *testing.T) {
 		InstanceID:   "event1",
 		HostName:     "event_test",
 		Status:       model.MSInstanceUP,
-		Environment:  common.EnvValueProd,
 	}
 	sid, instanceID, err := registry.RegistryService.RegisterServiceAndInstance(microservice, microServiceInstance)
 	assert.NoError(t, err)

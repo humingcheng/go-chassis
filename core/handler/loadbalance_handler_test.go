@@ -311,12 +311,10 @@ func BenchmarkLBHandler_Handle(b *testing.B) {
 			HostName:     "test1",
 			Status:       "UP",
 			EndpointsMap: map[string]string{"highway": "10.0.0.4:1234"},
-			Environment:  common.EnvValueProd,
 		},
 		{
 			HostName:     "test2",
 			Status:       "UP",
-			Environment:  common.EnvValueProd,
 			EndpointsMap: map[string]string{"highway": "10.0.0.3:1234"},
 		},
 	}

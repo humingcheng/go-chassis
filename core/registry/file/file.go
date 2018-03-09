@@ -52,7 +52,7 @@ func (f *File) AddDependencies(request *registry.MicroServiceDependency) error {
 }
 
 // GetMicroServiceID get micro-service id
-func (f *File) GetMicroServiceID(appID, microServiceName, version string) (string, error) {
+func (f *File) GetMicroServiceID(appID, microServiceName, version, env string) (string, error) {
 	return "helloService", nil
 }
 

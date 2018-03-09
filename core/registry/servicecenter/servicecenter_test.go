@@ -53,7 +53,6 @@ func testRegisterServiceAndInstance(t *testing.T, scc registry.Registry) {
 		EndpointsMap: map[string]string{"rest": "10.146.207.197:8080"},
 		HostName:     "default",
 		Status:       model.MSInstanceUP,
-		Environment:  common.EnvValueProd,
 	}
 	sid, insID, err := scc.RegisterServiceAndInstance(microservice, microServiceInstance)
 	assert.NoError(t, err)

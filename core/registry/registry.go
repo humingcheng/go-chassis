@@ -50,7 +50,7 @@ type Registry interface {
 	RegisterServiceAndInstance(microService *MicroService, instance *MicroServiceInstance) (string, string, error)
 	Heartbeat(microServiceID, microServiceInstanceID string) (bool, error)
 	AddDependencies(dep *MicroServiceDependency) error
-	GetMicroServiceID(appID, microServiceName, version string) (string, error)
+	GetMicroServiceID(appID, microServiceName, version, env string) (string, error)
 	GetAllMicroServices() ([]*MicroService, error)
 	GetMicroService(microServiceID string) (*MicroService, error)
 	GetMicroServiceInstances(consumerID, providerID string) ([]*MicroServiceInstance, error)

@@ -34,6 +34,7 @@ func RegisterMicroservice() error {
 		AppID:       config.GlobalDefinition.AppID,
 		ServiceName: service.ServiceDescription.Name,
 		Version:     service.ServiceDescription.Version,
+		Environment: service.ServiceDescription.Environment,
 		Status:      model.MicorserviceUp,
 		Level:       service.ServiceDescription.Level,
 		Schemas:     schemas,
@@ -109,9 +110,8 @@ func RegisterMicroserviceInstances() error {
 		lager.Logger.Error("Get hostname failed.", err)
 		return err
 	}
-	stage := config.Stage
 	service := config.MicroserviceDefinition
-	sid, err := RegistryService.GetMicroServiceID(config.GlobalDefinition.AppID, service.ServiceDescription.Name, service.ServiceDescription.Version)
+	sid, err := RegistryService.GetMicroServiceID(config.GlobalDefinition.AppID, service.ServiceDescription.Name, service.ServiceDescription.Version, service.ServiceDescription.Environment)
 	if err != nil {
 		lager.Logger.Errorf(err, "Get service failed, key: %s:%s:%s",
 			config.GlobalDefinition.AppID,
@@ -128,7 +128,6 @@ func RegisterMicroserviceInstances() error {
 		EndpointsMap: eps,
 		HostName:     hostname,
 		Status:       model.MSInstanceUP,
-		Environment:  stage,
 		Metadata:     map[string]string{"nodeIP": config.NodeIP},
 	}
 
